@@ -33,7 +33,7 @@ function handleControls(rabbit) {
     if (!jaws.pressed("left a q right d")) {
         rabbit.momentum[0] *= RABBIT_SPEED_DECAY;
 
-        if (rabbit.momentum[0] <= 0.005) {
+        if (Math.abs(rabbit.momentum[0]) <= 0.005) {
             rabbit.momentum[0] = 0;
         }
     }
@@ -57,7 +57,7 @@ function handleControls(rabbit) {
     if (!jaws.pressed("up z w down s")) {
         rabbit.momentum[1] *= RABBIT_SPEED_DECAY;
 
-        if (rabbit.momentum[1] <= 0.005) {
+        if (Math.abs(rabbit.momentum[1]) <= 0.005) {
             rabbit.momentum[1] = 0;
         }
     }

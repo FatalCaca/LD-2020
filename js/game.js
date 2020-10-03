@@ -12,24 +12,36 @@ function PlayState() {
     let wolves;
     let obstacles;
     let quadtree = new jaws.QuadTree();
+    let tileMap = jaws.TileMap({
+        size: [WIDTH / 32, HEIGHT / 32],
+        cell_size: [32, 32]
+    })
 
     this.setup = function () {
         bg = new jaws.Sprite({"image": "images/grass.png"});
         rabbit = Rabbit.create();
         wolves = new jaws.SpriteList();
         obstacles = new jaws.SpriteList();
+        debug = new jaws.SpriteList();
 
-        for (var i = 0; i < 20; ++i) {
+        for (var i = 0; i < 40; ++i) {
             obstacles.push(Obstacle.create(
                 getRandomInt(WIDTH / 32) * 32,
                 getRandomInt(HEIGHT / 32) * 32
             ));
         }
 
-        for (var i = 0; i < level; ++i) {
-            wolves.push(Wolf.create(i * 150, 400, rabbit, obstacles));
-        }
+        tileMap.push(obstacles);
 
+        for (var i = 0; i < level; ++i) {
+            wolves.push(Wolf.create(
+                i * 150,
+                400,
+                rabbit,
+                obstacles,
+                tileMap
+            ));
+        }
 
         obstaclesHitBoxes = obstacles.map((o) => o.hitbox);
     }
