@@ -1,0 +1,70 @@
+<html>
+    <head>
+        <title>RabbitLD</title>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script src="js/jaws-dynamic.js"></script>
+    </head>
+    <body>
+        <canvas style="display: block; margin: auto;"
+                id="canvas"
+                width="1024"
+                height="768"
+        ></canvas>
+    </body>
+
+    <script type="text/javascript">
+        function getRandomInt(max) {
+              return Math.floor(Math.random() * Math.floor(max));
+        }
+
+        function getDistance(a, b) {
+            return Math.sqrt(
+                Math.pow(b.x - a.x, 2) +
+                Math.pow(b.y - a.y, 2)
+            );
+        }
+
+        function getAngle(a, b) {
+            return Math.atan2(b.x - a.x, b.y - a.y);
+        }
+
+        function doLinesIntersect(a, b) {
+            let deltaA;
+
+            if (a.b.x - a.a.x == 0) {
+                deltaA = 999999;
+            } else {
+                deltaA = (a.b.y - a.a.y) / (a.b.x - a.a.x);
+            }
+
+            let deltaB;
+
+            if (b.b.x - b.a.x == 0) {
+                deltaB = 999999;
+            } else {
+                deltaB = (b.b.y - b.a.y) / (b.b.x - b.a.x);
+            }
+
+            let originA = a.a.y - (a.a.x * deltaA);
+            let originB = b.a.y - (b.a.x * deltaB);
+
+            let intersectionX;
+
+            if (deltaA - deltaB == 0) {
+                return false;
+            } else {
+                intersectionX = (originB - originA) / (deltaA - deltaB);
+            }
+
+            return intersectionX >= Math.min(a.a.x, a.b.x) && intersectionX <= Math.max(a.a.x, a.b.x)
+                && intersectionX >= Math.min(b.a.x, b.b.x) && intersectionX <= Math.max(b.a.x, b.b.x)
+                ;
+        }
+    </script>
+    <script src="js/controls.js"></script>
+    <script src="js/obstacle.js"></script>
+    <script src="js/rabbit.js"></script>
+    <script src="js/wolf.js"></script>
+    <script src="js/game.js"></script>
+</html>
+
