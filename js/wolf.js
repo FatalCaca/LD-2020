@@ -60,12 +60,14 @@ Wolf = {
                 surpriseSprite.draw();
             }
 
-            if (detailedPath) {
-        for (var i = 0; i < detailedPath.length; ++i) {
-            let e = detailedPath[i];
-            let s = jaws.Sprite({x: e.x, y: e.y, image: "images/rect.png"});
-            s.draw();
-        }
+            if (debug) {
+                if (detailedPath) {
+                    for (var i = 0; i < detailedPath.length; ++i) {
+                        let e = detailedPath[i];
+                        let s = jaws.Sprite({x: e.x, y: e.y, image: "images/rect.png"});
+                        s.draw();
+                    }
+                }
             }
         }
 
@@ -94,6 +96,7 @@ Wolf = {
                 let start = [wolf.x, wolf.y];
                 let end = [currentTarget.x, currentTarget.y];
                 detailedPath = tileMap.findPath(start, end);
+                detailedPath.shift();
                 detailedPath.shift();
             }
         }
@@ -212,6 +215,14 @@ Wolf = {
 
         // todo: optimize obstacle pre selection
         function canSeeThing(thing) {
+            if (!thing.width) {
+                thing.width = 1;
+            }
+
+            if (!thing.height) {
+                thing.height = 1;
+            }
+
             let sightLine = {
                 a: {x: wolf.x + wolf.width / 2, y: wolf.y + wolf.height / 2},
                 b: {x: thing.x + thing.width / 2, y: thing.y + thing.height / 2},

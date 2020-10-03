@@ -2,8 +2,10 @@ const WIDTH = 1024;
 const HEIGHT = 768;
 
 const RABBIT_MAX_MOMENTUM = 2;
-const RABBIT_ACCELERATION = 0.1;
+const RABBIT_ACCELERATION = 0.4;
 const RABBIT_SPEED_DECAY = 0.9;
+
+debug = true;
 
 function PlayState() {
     let level = 3;
@@ -22,7 +24,6 @@ function PlayState() {
         rabbit = Rabbit.create();
         wolves = new jaws.SpriteList();
         obstacles = new jaws.SpriteList();
-        debug = new jaws.SpriteList();
 
         for (var i = 0; i < 40; ++i) {
             obstacles.push(Obstacle.create(

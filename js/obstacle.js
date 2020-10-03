@@ -16,9 +16,17 @@ Obstacle = {
         obstacle.height = 32;
 
         hitbox.collidesWith = function (thing) {
-            return x + hitbox.width >= thing.x && x < thing.x + thing.width
-                && y + 16 + hitbox.height >= thing.y && y + 16 < thing.y + thing.height
-            ;
+            let thisSquare = {
+                a: {x: x, y: y + 16},
+                b: {x: x + hitbox.width, y: y + 16 + hitbox.height}
+            };
+
+            return (isPointInSquare(thing, thisSquare)
+                || isPointInSquare({x: thing.x + thing.width, y: thing.y}, thisSquare)
+                || isPointInSquare({x: thing.x, y: thing.y + thing.height}, thisSquare)
+                || isPointInSquare({x: thing.x + thing.width, y: thing.y + thing.height}, thisSquare)
+                || isPointInSquare({x: thing.x + thing.width / 2, y: thing.y + thing.height / 2}, thisSquare)
+                );
         }
 
         return obstacle;

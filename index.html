@@ -13,6 +13,7 @@
     </body>
 
     <script type="text/javascript">
+ding = 10;
         function getRandomInt(max) {
               return Math.floor(Math.random() * Math.floor(max));
         }
@@ -56,9 +57,19 @@
                 intersectionX = (originB - originA) / (deltaA - deltaB);
             }
 
-            return intersectionX >= Math.min(a.a.x, a.b.x) && intersectionX <= Math.max(a.a.x, a.b.x)
+            return (intersectionX >= Math.min(a.a.x, a.b.x) && intersectionX <= Math.max(a.a.x, a.b.x)
                 && intersectionX >= Math.min(b.a.x, b.b.x) && intersectionX <= Math.max(b.a.x, b.b.x)
-                ;
+                );
+        }
+
+        function isPointInSquare(point, square) {
+            if (ding > 0) {
+            ding--;
+            console.log(point, square);
+            }
+            return (point.x >= square.a.x && point.x <= square.b.x
+                && point.y >= square.a.y && point.y <= square.b.y
+                );
         }
     </script>
     <script src="js/controls.js"></script>
