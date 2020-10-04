@@ -68,6 +68,8 @@ function RewardState() {
         if (jaws.pressedWithoutRepeat("enter space")) {
             if (costs[selected] <= money && !perks[selected]) {
                 done = true;
+                canFaintDeath = true;
+                canSprint = true;
                 perks[selected] += 1;
                 money -= costs[selected];
                 startWhiteTransition(() => jaws.switchGameState(PlayState));
@@ -76,6 +78,8 @@ function RewardState() {
 
         if (jaws.pressedWithoutRepeat("esc backspace")) {
             done = true;
+            canFaintDeath = true;
+            canSprint = true;
             console.log('back to play');
             startWhiteTransition(() => jaws.switchGameState(PlayState));
         }
