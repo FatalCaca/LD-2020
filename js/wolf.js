@@ -1,16 +1,37 @@
 Wolf = {
-    create(x, y, rabbit, obstacles, tileMap) {
+    createWolf1(x, y, rabbit, obstacles, tileMap) {
+        let wolf = Wolf.create(x, y, rabbit, obstacles, tileMap, 1);
+        return wolf;
+    },
+    createWolf2(x, y, rabbit, obstacles, tileMap) {
+        let wolf = Wolf.create(x, y, rabbit, obstacles, tileMap, 2);
+        wolf.faintDeathSuccess = 60;
+        wolf.chaseSpeedMultiplier = 1.6;
+        wolf.speed = 0.50;
+        wolf.snifRadius = 350;
+        wolf.giveUpDistance = 400;
+        wolf.snifAngleOpening = Math.PI / 1.5;
+        wolf.reactionTime = 300;
+        wolf.perseveranceTimeWithNoView = 1000;
+        return wolf;
+    },
+    createWolf3(x, y, rabbit, obstacles, tileMap) {
+        let wolf = Wolf.create(x, y, rabbit, obstacles, tileMap, 3);
+        wolf.faintDeathSuccess = 30;
+        wolf.chaseSpeedMultiplier = 1.7;
+        wolf.speed = 0.50;
+        wolf.snifRadius = 450;
+        wolf.giveUpDistance = 600;
+        wolf.snifAngleOpening = Math.PI;
+        wolf.reactionTime = 150;
+        wolf.perseveranceTimeWithNoView = 2000;
+        return wolf;
+    },
+    create(x, y, rabbit, obstacles, tileMap, difficulty) {
         let status = 'reaching_for_patrol';
-        let speed = 0.40;
-        let snifRadius = 250;
-        let giveUpDistance = 600;
-        let snifAngleOpening = Math.PI / 2;
-        let reactionTime = 300;
         let reactionEndPlanned = null;
-        let chaseSpeedMultiplier = 2;
         let previousStatusBeforeChase = status;
         let backToNormalPlanned = null;
-        let perseveranceTimeWithNoView = 100500;
         let giveUpNoViewPlanned = null;
         let detailedPath = null;
         let currentTarget = null;
@@ -18,23 +39,53 @@ Wolf = {
         let updateItineraryPeriod = 40;
 
         let originalPosition = {x, y};
-        let wolfAnimation = new jaws.Animation({
-            sprite_sheet: "images/wolf.png",
-            frame_size: [32, 32],
-            frame_duration: 500,
-        });
-
         let surpriseAnimation = null;
         let questionAnimation = null;
         let surpriseSprite = jaws.Sprite({x, y});
 
         let wolf = new jaws.Sprite({x, y});
-        wolf.currentAnimation = wolfAnimation;
+        wolf.difficulty = difficulty;
+        wolf.faintDeathSuccess = 90;
+        wolf.perseveranceTimeWithNoView = 1000;
+        wolf.tileMap = tileMap;
+        wolf.chaseSpeedMultiplier = 1.5;
+        wolf.speed = 0.40;
+        wolf.snifRadius = 250;
+        wolf.giveUpDistance = 300;
+        wolf.snifAngleOpening = Math.PI / 2;
+        wolf.reactionTime = 500;
         let patrolPoint = new jaws.Sprite({
             x: getRandomInt(WIDTH),
             y: getRandomInt(HEIGHT),
             image: "images/dead.png",
         });
+
+        let wolfWalkLeftAnimation = new jaws.Animation({
+            sprite_sheet: "images/wolf" + difficulty + "-walk-left.png",
+            frame_size: [32, 32],
+            frame_duration: 500,
+        });
+
+        wolf.currentAnimation = wolfWalkLeftAnimation;
+
+        let wolfWalkRightAnimation = new jaws.Animation({
+            sprite_sheet: "images/wolf" + difficulty + "-walk-right.png",
+            frame_size: [32, 32],
+            frame_duration: 500,
+        });
+
+        let wolfRunLeftAnimation = new jaws.Animation({
+            sprite_sheet: "images/wolf" + difficulty + "-run-left.png",
+            frame_size: [32, 32],
+            frame_duration: 250,
+        });
+
+        let wolfRunRightAnimation = new jaws.Animation({
+            sprite_sheet: "images/wolf" + difficulty + "-run-right.png",
+            frame_size: [32, 32],
+            frame_duration: 250,
+        });
+
         setStatus(status);
         wolf.patrolPoint = patrolPoint;
         wolf.hitRabbit = false;
@@ -42,9 +93,37 @@ Wolf = {
 
         let originalDraw = wolf.draw;
 
+        wolf.getStatus = function () {
+            return status;
+        }
+
         wolf.draw = function() {
+            let targetDirection = (currentTarget && currentTarget.x < wolf.x)
+                ? 'left'
+                : 'right'
+            ;
+
+            if (status === 'chasing_rabbit' || status === 'giving_up_chase') {
+                if (targetDirection == 'left') {
+                    wolf.setImage(wolfRunLeftAnimation.next());
+                } else {
+                    wolf.setImage(wolfRunRightAnimation.next());
+                }
+            }
+
+            if (status === 'reaching_for_patrol' || status === 'reaching_for_original_position') {
+                if (targetDirection == 'left') {
+                    wolf.setImage(wolfWalkLeftAnimation.next());
+                } else {
+                    wolf.setImage(wolfWalkRightAnimation.next());
+                }
+            }
+
             originalDraw.apply(this);
-            wolf.patrolPoint.draw();
+
+            if (debug) {
+                wolf.patrolPoint.draw();
+            }
 
             if (status === 'detecting_rabbit') {
                 surpriseSprite.x = wolf.x;
@@ -85,6 +164,8 @@ Wolf = {
             updateItinerary();
         }
 
+        wolf.setStatus = setStatus;
+
         function getCurrentTarget () {
             return currentTarget;
         }
@@ -95,11 +176,13 @@ Wolf = {
             if (!canSeeThing(currentTarget)) {
                 let start = [wolf.x, wolf.y];
                 let end = [currentTarget.x, currentTarget.y];
-                detailedPath = tileMap.findPath(start, end);
+                detailedPath = wolf.tileMap.findPath(start, end);
                 detailedPath.shift();
                 detailedPath.shift();
             }
         }
+
+        wolf.updateItinerary = updateItinerary;
 
         wolf.update = function() {
             updateItineraryTick += 1;
@@ -122,26 +205,28 @@ Wolf = {
 
             let currentTarget = getCurrentTarget();
 
-            if (status === 'reaching_for_original_position'
-                || status === 'reaching_for_patrol'
-            ) {
-                if (getDistance(rabbit, wolf) <= snifRadius) {
-                    let angle = getAngle(wolf, currentTarget);
-                    let snifAngle = getAngle(wolf, rabbit);
+            if (rabbit.status === 'alive') {
+                if (status === 'reaching_for_original_position'
+                        || status === 'reaching_for_patrol'
+                   ) {
+                    if (getDistance(rabbit, wolf) <= wolf.snifRadius) {
+                        let angle = getAngle(wolf, currentTarget);
+                        let snifAngle = getAngle(wolf, rabbit);
 
-                    if (snifAngle >= angle - snifAngleOpening / 2
-                        && snifAngle <= angle + snifAngleOpening / 2
-                        && canSeeThing(rabbit)
-                    ) {
-                        previousStatusBeforeChase = status;
-                        setStatus('detecting_rabbit');
-                        reactionEndPlanned = Date.now() + reactionTime;
+                        if (snifAngle >= angle - wolf.snifAngleOpening / 2
+                                && snifAngle <= angle + wolf.snifAngleOpening / 2
+                                && canSeeThing(rabbit)
+                           ) {
+                            previousStatusBeforeChase = status;
+                            setStatus('detecting_rabbit');
+                            reactionEndPlanned = Date.now() + wolf.reactionTime;
 
-                        surpriseAnimation = new jaws.Animation({
-                            sprite_sheet: "images/surprise.png",
-                            frame_size: [32, 32],
-                            frame_duration: reactionTime / 3,
-                        });
+                            surpriseAnimation = new jaws.Animation({
+                                sprite_sheet: "images/surprise.png",
+                                frame_size: [32, 32],
+                                frame_duration: wolf.reactionTime / 3,
+                            });
+                        }
                     }
                 }
             }
@@ -153,7 +238,7 @@ Wolf = {
                     giveUpNoViewPlanned = null;
                 } else {
                     if (!giveUpNoViewPlanned) {
-                        giveUpNoViewPlanned = Date.now() + perseveranceTimeWithNoView;
+                        giveUpNoViewPlanned = Date.now() + wolf.perseveranceTimeWithNoView;
                     }
 
                     if (updateItineraryTick % updateItineraryPeriod == 0) {
@@ -162,17 +247,10 @@ Wolf = {
                 }
 
 
-                if (distance >= giveUpDistance
+                if (distance >= wolf.giveUpDistance
                     || (giveUpNoViewPlanned && Date.now() >= giveUpNoViewPlanned)
                 ) {
-                    setStatus('giving_up_chase');
-                    backToNormalPlanned = Date.now() + reactionTime * 3;
-
-                    questionAnimation = new jaws.Animation({
-                        sprite_sheet: "images/question.png",
-                        frame_size: [32, 32],
-                        frame_duration: reactionTime,
-                    });
+                    giveUpChase();
 
                     return;
                 }
@@ -202,10 +280,10 @@ Wolf = {
                 }
 
                 let angle = getAngle(wolf, intermediaryTarget);
-                let actualSpeed = speed;
+                let actualSpeed = wolf.speed;
 
                 if (status === 'chasing_rabbit') {
-                    actualSpeed *= chaseSpeedMultiplier;
+                    actualSpeed *= wolf.chaseSpeedMultiplier;
                 }
 
                 wolf.x += Math.sin(angle) * actualSpeed;
@@ -250,6 +328,19 @@ Wolf = {
 
             return true;
         }
+
+        function giveUpChase () {
+            setStatus('giving_up_chase');
+            backToNormalPlanned = Date.now() + wolf.reactionTime * 3;
+
+            questionAnimation = new jaws.Animation({
+                sprite_sheet: "images/question.png",
+                frame_size: [32, 32],
+                frame_duration: wolf.reactionTime,
+            });
+        }
+
+        wolf.giveUpChase = giveUpChase;
 
         return wolf;
     }};

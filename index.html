@@ -4,12 +4,38 @@
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
         <script src="js/jaws-dynamic.js"></script>
     </head>
-    <body>
-        <canvas style="display: block; margin: auto;"
+    <body style="background-color: gray">
+        <canvas style="
+            display: block; margin: auto;
+            margin-top: 100px;
+            border: 16px solid #555;
+            border-radius: 16px;
+        "
                 id="canvas"
                 width="1024"
                 height="768"
         ></canvas>
+
+        <div style="
+            margin: auto;
+            width: 1024px;
+            font-family: ubuntu, consolas;
+            font-size: 24px;
+        ">
+            <br>
+            <hr>
+            <h1>My LD 47 compo submission!</h1>
+            <p>Made in js with <a href="https://github.com/ippa/jaws">JawJS</a>
+            <p>Image manipulation : 
+            <a href="https://www.piskelapp.com/">Piskel</a> 
+            and
+            <a href="https://www.getpaint.net/">Paint.net</a>
+            <p>All assets by me except the grass and the paper image</p>
+            <p>If you're masochist you can find the sources
+            <a href="https://gith/">Paint.net</a>
+        </div>
+
+        <img src="images/map.png" style="display: none" id="map">
     </body>
 
     <script type="text/javascript">
@@ -30,20 +56,57 @@ ding = 10;
         }
 
         function doLinesIntersect(a, b) {
+            if (a.b.x < a.a.x) {
+                a = {
+                    a: a.b,
+                    b: a.a,
+                };
+            }
+
+            if (b.b.x < b.a.x) {
+                b = {
+                    a: b.b,
+                    b: b.a,
+                };
+            }
+
             let deltaA;
+            let deltaB;
+
+            if (a.b.x - a.a.x == 0 && b.b.x - b.a.x == 0) {
+                return a.a.x === b.a.x;
+            }
 
             if (a.b.x - a.a.x == 0) {
-                deltaA = 999999;
+                deltaA = null;
             } else {
                 deltaA = (a.b.y - a.a.y) / (a.b.x - a.a.x);
             }
 
-            let deltaB;
-
             if (b.b.x - b.a.x == 0) {
-                deltaB = 999999;
+                deltaB = null;
             } else {
                 deltaB = (b.b.y - b.a.y) / (b.b.x - b.a.x);
+            }
+
+            if (deltaA === null) {
+                if (b.a.x > a.a.x || b.b.x < a.a.x) {
+                    return false;
+                }
+
+                let bYvalue = b.a.y + deltaB * (a.a.x - b.a.x);
+
+                return bYvalue >= Math.min(a.a.y, a.b.y) && bYvalue <= Math.max(a.a.y, a.b.y);
+            }
+
+            if (deltaB === null) {
+                if (a.a.x > b.a.x || a.b.x < b.a.x) {
+                    return false;
+                }
+
+                let aYvalue = a.a.y + deltaA * (b.a.x - a.a.x);
+
+                return aYvalue >= Math.min(b.a.y, b.b.y) && aYvalue <= Math.max(b.a.y, b.b.y);
             }
 
             let originA = a.a.y - (a.a.x * deltaA);
@@ -63,19 +126,29 @@ ding = 10;
         }
 
         function isPointInSquare(point, square) {
-            if (ding > 0) {
-            ding--;
-            console.log(point, square);
-            }
             return (point.x >= square.a.x && point.x <= square.b.x
                 && point.y >= square.a.y && point.y <= square.b.y
                 );
         }
+
+        perks = [0, 0];
+        money = 0;
+        score = 0;
+        originalMap = null;
+        canFaintDeath = true;
+        canSprint = true;
+        fainingDeath = false;
     </script>
+    <script src="js/carrot.js"></script>
+    <script src="js/wolf.js"></script>
     <script src="js/controls.js"></script>
     <script src="js/obstacle.js"></script>
     <script src="js/rabbit.js"></script>
     <script src="js/wolf.js"></script>
+    <script src="js/help.js"></script>
+    <script src="js/gameover.js"></script>
+    <script src="js/reward.js"></script>
     <script src="js/game.js"></script>
+    <script src="js/transition.js"></script>
 </html>
 
