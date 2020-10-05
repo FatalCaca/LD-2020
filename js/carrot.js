@@ -1,5 +1,5 @@
 Carrot = {
-    create(x, y, scale = 1) {
+    create(x = 500, y = 500, scale = 1) {
         let carrot = new jaws.Sprite({x, y, scale});
 
         let animation = new jaws.Animation({
